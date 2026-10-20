@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-# Додаємо поточну директорію до шляху імпорту, щоб бачити інші файли пакету
+# Add current directory to python path to import sibling modules
 sys.path.append(str(Path(__file__).resolve().parent))
 
 from db import get_connection
@@ -21,13 +21,13 @@ from seeds.reference_data import (
 )
 
 def load_reference_data():
-    print("Починаємо завантаження довідників у базу даних...")
+    print("Starting reference data loading into the database...")
     
     with get_connection() as conn:
         with conn.cursor() as cur:
             
-            # 1. Регіони
-            print("Завантаження: regions...")
+            # 1. Regions
+            print("Loading: regions...")
             for row in REGIONS:
                 cur.execute(
                     """
@@ -38,12 +38,12 @@ def load_reference_data():
                     (row["region_name"],)
                 )
 
-            # Отримуємо словник мапінгу {region_name: region_id} для подальшого використання
+            # Retrieve mapping {region_name: region_id} for dependent tables
             cur.execute("SELECT region_id, region_name FROM regions;")
             region_map = {name: r_id for r_id, name in cur.fetchall()}
 
-            # 2. Міста
-            print("Завантаження: cities...")
+            # 2. Cities
+            print("Loading: cities...")
             for row in CITIES:
                 r_id = region_map.get(row["region_name"])
                 if r_id:
@@ -56,8 +56,8 @@ def load_reference_data():
                         (row["city_name"], r_id)
                     )
 
-            # 3. Типи клієнтів (у таблиці колонка називається type_name)
-            print("Завантаження: customer_types...")
+            # 3. Customer Types
+            print("Loading: customer_types...")
             for row in CUSTOMER_TYPES:
                 cur.execute(
                     """
@@ -68,8 +68,8 @@ def load_reference_data():
                     (row["customer_type_name"],)
                 )
 
-            # 4. Продавці (Salespersons)
-            print("Завантаження: salespersons...")
+            # 4. Salespersons
+            print("Loading: salespersons...")
             for row in SALESPERSONS:
                 r_id = region_map.get(row["region_name"])
                 cur.execute(
@@ -86,8 +86,8 @@ def load_reference_data():
                     )
                 )
 
-            # 5. Категорії товарів
-            print("Завантаження: categories...")
+            # 5. Categories
+            print("Loading: categories...")
             for row in CATEGORIES:
                 cur.execute(
                     """
@@ -98,12 +98,12 @@ def load_reference_data():
                     (row["category_name"],)
                 )
 
-            # Отримуємо мапінг {category_name: category_id}
+            # Retrieve mapping {category_name: category_id} for subcategories
             cur.execute("SELECT category_id, category_name FROM categories;")
             category_map = {name: c_id for c_id, name in cur.fetchall()}
 
-            # 6. Підкатегорії товарів
-            print("Завантаження: subcategories...")
+            # 6. Subcategories
+            print("Loading: subcategories...")
             for row in SUBCATEGORIES:
                 c_id = category_map.get(row["category_name"])
                 if c_id:
@@ -116,8 +116,8 @@ def load_reference_data():
                         (row["subcategory_name"], c_id)
                     )
 
-            # 7. Бренди
-            print("Завантаження: brands...")
+            # 7. Brands
+            print("Loading: brands...")
             for row in BRANDS:
                 cur.execute(
                     """
@@ -128,8 +128,8 @@ def load_reference_data():
                     (row["brand_name"],)
                 )
 
-            # 8. Постачальники
-            print("Завантаження: suppliers...")
+            # 8. Suppliers
+            print("Loading: suppliers...")
             for row in SUPPLIERS:
                 cur.execute(
                     """
@@ -140,8 +140,8 @@ def load_reference_data():
                     (row["supplier_name"], row["country"], True)
                 )
 
-            # 9. Статуси товарів
-            print("Завантаження: product_statuses...")
+            # 9. Product Statuses
+            print("Loading: product_statuses...")
             for row in PRODUCT_STATUSES:
                 cur.execute(
                     """
@@ -152,8 +152,8 @@ def load_reference_data():
                     (row["status_name"],)
                 )
 
-            # 10. Канали продажів
-            print("Завантаження: sales_channels...")
+            # 10. Sales Channels
+            print("Loading: sales_channels...")
             for row in SALES_CHANNELS:
                 cur.execute(
                     """
@@ -164,8 +164,8 @@ def load_reference_data():
                     (row["channel_name"],)
                 )
 
-            # 11. Статуси замовлень
-            print("Завантаження: order_statuses...")
+            # 11. Order Statuses
+            print("Loading: order_statuses...")
             for row in ORDER_STATUSES:
                 cur.execute(
                     """
@@ -176,8 +176,8 @@ def load_reference_data():
                     (row["status_name"],)
                 )
 
-            # 12. Причини повернень
-            print("Завантаження: return_reasons...")
+            # 12. Return Reasons
+            print("Loading: return_reasons...")
             for row in RETURN_REASONS:
                 cur.execute(
                     """
@@ -188,9 +188,9 @@ def load_reference_data():
                     (row["reason_name"], True)
                 )
 
-        # Комітимо транзакцію
+        # Commit transaction
         conn.commit()
-    print("Успіх! Усі довідники успішно завантажено в базу даних.")
+    print("Success! All reference data has been successfully loaded into the database.")
 
 if __name__ == "__main__":
     load_reference_data()

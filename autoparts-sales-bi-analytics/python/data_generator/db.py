@@ -1,4 +1,3 @@
-
 import os
 from pathlib import Path
 
@@ -6,13 +5,13 @@ import psycopg
 from dotenv import load_dotenv
 
 
-# Завантажуємо параметри з .env, який лежить поруч із db.py
+# Load environment variables from the .env file located next to db.py
 ENV_PATH = Path(__file__).resolve().parent / ".env"
 load_dotenv(ENV_PATH)
 
 
 def get_connection():
-    """Створює підключення до PostgreSQL."""
+    """Establishes and returns a connection to the PostgreSQL database."""
     required_vars = [
         "DB_HOST",
         "DB_PORT",
@@ -28,7 +27,7 @@ def get_connection():
 
     if missing_vars:
         raise RuntimeError(
-            f"Не задані параметри у .env: {', '.join(missing_vars)}"
+            f"Missing required environment variables in .env: {', '.join(missing_vars)}"
         )
 
     return psycopg.connect(
@@ -42,14 +41,14 @@ def get_connection():
 
 
 def test_connection():
-    """Перевіряє підключення та назву поточної БД."""
+    """Tests the database connection and prints current database name and version."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT current_database(), version();")
             db_name, db_version = cur.fetchone()
 
-    print(f"Підключення успішне. База даних: {db_name}")
-    print(f"Версія PostgreSQL: {db_version}")
+    print(f"Connection successful! Database: {db_name}")
+    print(f"PostgreSQL version: {db_version}")
 
 
 if __name__ == "__main__":

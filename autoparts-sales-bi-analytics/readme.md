@@ -1,4 +1,4 @@
-# AutoParts Sales & BI Analytics — Business Requirements
+# AutoParts Sales & BI Analytics
 
 # 1. Project Overview
 

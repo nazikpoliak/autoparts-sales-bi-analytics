@@ -1,0 +1,261 @@
+"check_id","check_name","value","expected","status"
+A0.1,Database / server,autoparts_bi / PostgreSQL 18.6,autoparts_bi,OK
+A0.2,Schemas that contain tables named orders / customers,public,public,INFO
+A0.3,Current search_path,"public, ""$user""",includes the schema from A0.2,INFO
+A0.4,Session is read-only,on,on,OK
+A1,brands,public.brands,present,OK
+A1,categories,public.categories,present,OK
+A1,cities,public.cities,present,OK
+A1,customer_types,public.customer_types,present,OK
+A1,customers,public.customers,present,OK
+A1,order_items,public.order_items,present,OK
+A1,order_statuses,public.order_statuses,present,OK
+A1,orders,public.orders,present,OK
+A1,product_statuses,public.product_statuses,present,OK
+A1,products,public.products,present,OK
+A1,regions,public.regions,present,OK
+A1,return_items,public.return_items,present,OK
+A1,return_reasons,public.return_reasons,present,OK
+A1,returns,public.returns,present,OK
+A1,sales_channels,public.sales_channels,present,OK
+A1,salespersons,public.salespersons,present,OK
+A1,subcategories,public.subcategories,present,OK
+A1,suppliers,public.suppliers,present,OK
+A2.0,Columns that deviate from 01_schema.sql,"0","0",OK
+A3.0,Constraints that deviate from 01_schema.sql,"0","0",OK
+A4.0,Indexes that deviate from 01_schema.sql,"0","0",OK
+A5.1,brands.country,absent,absent,OK
+A5.1,brands.status,absent,absent,OK
+A5.1,customers.created_at,absent,absent,OK
+A5.1,customers.customer_code,absent,absent,OK
+A5.1,customers.salesperson_id,absent,absent,OK
+A5.1,customers.status,absent,absent,OK
+A5.1,order_items.discount_pct,absent,absent,OK
+A5.1,order_items.unit_price,absent,absent,OK
+A5.1,orders.created_at,absent,absent,OK
+A5.1,orders.currency,absent,absent,OK
+A5.1,orders.order_number,absent,absent,OK
+A5.1,products.list_price,absent,absent,OK
+A5.1,products.unit_cost,absent,absent,OK
+A5.1,return_items.unit_price,absent,absent,OK
+A5.1,returns.created_at,absent,absent,OK
+A5.1,returns.return_number,absent,absent,OK
+A5.1,returns.status,absent,absent,OK
+A5.1,salespersons.employee_code,absent,absent,OK
+A5.1,salespersons.status,absent,absent,OK
+A5.1,suppliers.status,absent,absent,OK
+A6.1,Delivery / shipping date versus return date,NOT POSSIBLE,orders has only order_date; there is no shipped or delivered date,N/A
+A6.2,Partially fulfilled orders: shipped quantity,NOT POSSIBLE,"order_items has no shipped_quantity; status ""Partially Fulfilled"" cannot be verified",N/A
+A6.3,Customer owner (account manager) versus order manager,NOT POSSIBLE,customers has no salesperson_id (only the ERD image shows it); manager is stored per order,N/A
+A6.4,Order total versus sum of lines,NOT POSSIBLE,orders has no stored total; totals are always derived from order_items,N/A
+A6.5,Currency consistency,NOT POSSIBLE,no currency column in the schema (the ERD shows orders.currency),N/A
+A6.6,Price history / price at the date of sale versus product price,NOT POSSIBLE,products has one price only; B7.16 compares the line price with the current list price,N/A
+A6.7,Return status / processing state,NOT POSSIBLE,returns has no status column (the ERD shows one),N/A
+A6.8,Tax / VAT correctness,NOT POSSIBLE,no VAT columns; prices are treated as net amounts,N/A
+A6.9,Discount percentage as a stored value,NOT POSSIBLE,"the schema stores discount_amount (a LINE total), not a percentage; B7.10 derives the percentage",N/A
+B1.01,regions,"8",'= 8,OK
+B1.02,cities,"42",'= 42,OK
+B1.03,customer_types,"5",'= 5,OK
+B1.04,customers,"2000",>= 1000,OK
+B1.05,salespersons,"24",'= 24,OK
+B1.06,sales_channels,"5",'= 5,OK
+B1.07,order_statuses,"5",'= 5,OK
+B1.08,brands,"40",'= 40,OK
+B1.09,categories,"15",'= 15,OK
+B1.10,subcategories,"50",'= 50,OK
+B1.11,suppliers,"20",'= 20,OK
+B1.12,product_statuses,"4",'= 4,OK
+B1.13,products,"10000",>= 5000,OK
+B1.14,orders,"40000",>= 50000,BELOW_TARGET
+B1.15,order_items,"78069",>= 250000,BELOW_TARGET
+B1.16,return_reasons,"8",'= 8,OK
+B1.17,returns,"1500",info,INFO
+B1.18,return_items,"2164",info,INFO
+B2.01,Duplicate business key: regions.region_name,"0","0",OK
+B2.02,"Duplicate business key: cities (region_id, city_name)","0","0",OK
+B2.03,Duplicate business key: customer_types.type_name,"0","0",OK
+B2.04,Duplicate business key: sales_channels.channel_name,"0","0",OK
+B2.05,Duplicate business key: order_statuses.status_name,"0","0",OK
+B2.06,Duplicate business key: brands.brand_name,"0","0",OK
+B2.07,Duplicate business key: categories.category_name,"0","0",OK
+B2.08,"Duplicate business key: subcategories (category_id, subcategory_name)","0","0",OK
+B2.09,Duplicate business key: suppliers.supplier_name,"0","0",OK
+B2.10,Duplicate business key: product_statuses.status_name,"0","0",OK
+B2.11,Duplicate business key: products.sku,"0","0",OK
+B2.12,Duplicate business key: return_reasons.reason_name,"0","0",OK
+B2.13,"Duplicate business key: return_items (return_id, order_item_id)","0","0",OK
+B2.14,Duplicate business key: customers.tax_id (non-NULL),"0","0",OK
+B2.15,"Duplicate salespersons (first_name, last_name, hire_date)","0","0",OK
+B2.16,"Soft duplicate: customers (customer_name, city_id)","935","0",WARN
+B2.17,Soft duplicate: customers.email (non-NULL),"1269","0",WARN
+B2.18,Soft duplicate: customers.phone (non-NULL),"0","0",OK
+B2.19,Soft duplicate: products.product_name,"70","0",WARN
+B2.20,"Soft duplicate: order_items (order_id, product_id)","0","0",OK
+B2.21,"Soft duplicate: orders (customer_id, order_date, sales_channel_id)","0","0",OK
+B2.22,Orders with more than one return (surplus returns),"0","0",OK
+B2.23,Order items returned in more than one return (surplus return_items),"0","0",OK
+B3.01,Orphan rows: cities.region_id -> regions,"0","0",OK
+B3.02,Orphan rows: customers.city_id -> cities,"0","0",OK
+B3.03,Orphan rows: customers.customer_type_id -> customer_types,"0","0",OK
+B3.04,Orphan rows: salespersons.region_id -> regions,"0","0",OK
+B3.05,Orphan rows: subcategories.category_id -> categories,"0","0",OK
+B3.06,Orphan rows: orders.customer_id -> customers,"0","0",OK
+B3.07,Orphan rows: orders.salesperson_id -> salespersons,"0","0",OK
+B3.08,Orphan rows: orders.sales_channel_id -> sales_channels,"0","0",OK
+B3.09,Orphan rows: orders.order_status_id -> order_statuses,"0","0",OK
+B3.10,Orphan rows: order_items.order_id -> orders,"0","0",OK
+B3.11,Orphan rows: order_items.product_id -> products,"0","0",OK
+B3.12,Orphan rows: returns.order_id -> orders,"0","0",OK
+B3.13,Orphan rows: returns.customer_id -> customers,"0","0",OK
+B3.14,Orphan rows: returns.return_reason_id -> return_reasons,"0","0",OK
+B3.15,Orphan rows: return_items.return_id -> returns,"0","0",OK
+B3.16,Orphan rows: return_items.order_item_id -> order_items,"0","0",OK
+B3.17,Orphan rows: return_items.product_id -> products,"0","0",OK
+B3.18,Orphan rows: products.subcategory_id -> subcategories,"0","0",OK
+B3.19,Orphan rows: products.brand_id -> brands,"0","0",OK
+B3.20,Orphan rows: products.supplier_id -> suppliers,"0","0",OK
+B3.21,Orphan rows: products.product_status_id -> product_statuses,"0","0",OK
+B3.22,Customers without city_id,"0","0",OK
+B3.23,Salespersons without region_id,"0","0",OK
+B3.24,Orders without salesperson_id,"0",info,INFO
+B3.25,returns.customer_id differs from the customer of the order,"0","0",OK
+B3.26,return_items.product_id differs from the product of the order item,"0","0",OK
+B3.27,Return line belongs to an order other than the return's order,"0","0",OK
+B3.28,Orders without order_items,"0","0",OK
+B3.29,Returns without return_items,"0","0",OK
+B3.30,Customers without orders,"0",info,INFO
+B3.31,Products never sold,"4",info,INFO
+B3.32,Salespersons without orders,"0",info,INFO
+B3.33,Orders where salesperson region is comparable to customer region,"40000",info,INFO
+B3.34,Orders where salesperson region differs from customer region,"35069",info,INFO
+B3.35,Share of orders (%) where salesperson region differs from customer region,"87.7",<= 50,WARN
+B4.01,Orders dated before customer registration,"13760","0",PROBLEM
+B4.02,Share of orders (%) dated before customer registration,"34.4",<= 0,WARN
+B4.03,Customers without registration_date,"0","0",OK
+B4.04,Orders from customers flagged is_active = false,"3728",info,INFO
+B4.05,Orders dated in the future,"0","0",OK
+B4.06,Order date range,"2024-10-22 05:11:28.947537 .. 2026-10-22 16:39:28.947537",info,INFO
+B4.07,Registration date range,"2023-10-21 .. 2026-10-18",info,INFO
+B4.08,History length in months,"24.0","24 .. 36",OK
+B4.09,Order lines dated before the product was created,"77844","0",WARN
+B4.10,Orders dated before the salesperson was hired,"0","0",OK
+B4.11,Customers registered in the future,"0","0",OK
+B5.01,Returns dated before the order,"0","0",OK
+B5.02,Returns on the same calendar day as the order,"0",info,INFO
+B5.03,Returns dated in the future,"12","0",PROBLEM
+B5.04,Min days from order to return,"1.4",info,INFO
+B5.05,Avg days from order to return,"11.3",info,INFO
+B5.06,Max days from order to return,"20.8",info,INFO
+B5.07,Returns dated before customer registration,"507","0",PROBLEM
+B5.08,Returns of orders that are not Completed,"0","0",OK
+B5.09,Return headers per 100 orders (%),"3.75",info,INFO
+B6.01,Order items with returned quantity above sold quantity,"0","0",OK
+B6.02,Surplus returned quantity (units),"0","0",OK
+B6.03,Items fully returned,"2164",info,INFO
+B6.04,Items partially returned,"0",info,INFO
+B6.05,Single return line larger than the sold line,"0","0",OK
+B6.06,Refund price above the sale price,"0","0",OK
+B6.07,Refund above the price actually paid (after discount),"443","0",PROBLEM
+B6.08,Total refund overstatement,"501259.49","0",PROBLEM
+B7.01,Order lines with quantity <= 0,"0","0",OK
+B7.02,Order lines with negative unit_sale_price,"0","0",OK
+B7.03,Order lines with negative unit_cost,"0","0",OK
+B7.04,Order lines with negative discount_amount,"0","0",OK
+B7.05,Order lines with unit_sale_price = 0,"0","0",OK
+B7.06,Order lines with unit_cost = 0,"0","0",OK
+B7.07,Discount larger than the line amount,"0","0",OK
+B7.08,Discount equal to 100% of the line,"0","0",OK
+B7.09,Lines with a discount (%),"20.3",info,INFO
+B7.10,Avg discount among discounted lines (% of line amount),"6.48",info,INFO
+B7.11,Max discount (% of line amount),"10.00",info,INFO
+B7.12,Lines sold below cost (unit_sale_price < unit_cost),"0","0",OK
+B7.13,Products with purchase_price <= 0,"0","0",OK
+B7.14,Products with standard_sale_price <= 0,"0","0",OK
+B7.15,Products with standard_sale_price below purchase_price,"0","0",OK
+B7.16,Lines with price deviating >10% from the product standard price,"0",info,INFO
+B7.17,Lines with unit_cost deviating >5% from the product purchase price,"0",info,INFO
+B7.18,Order lines with fractional quantity,"0",info,INFO
+B7.19,Return lines with quantity <= 0 or negative refund,"0","0",OK
+B7.20,Return lines with refund_unit_price = 0,"0","0",OK
+B8.01,Order statuses outside the expected list,"0","0",OK
+B8.02,Expected statuses missing in order_statuses,"0","0",OK
+B8.03,Completed orders (%),"84.9",info,INFO
+B8.04,Cancelled orders (%),"10.1",info,INFO
+B8.05,Non-final orders (%),"5.0",info,INFO
+B8.06,Non-final orders older than 90 days,"1754","0",WARN
+B8.07,Order lines of products that are not Active (%),"15.1",info,INFO
+B8.08,Inactive customers (%),"9.4",info,INFO
+B9.01,"Gross revenue, all statuses","1308392550.38",info,INFO
+B9.02,"Total discounts, all statuses","17388756.66",info,INFO
+B9.03,"Gross revenue, Completed only","1110390414.49",info,INFO
+B9.04,"Net revenue, Completed only (after discounts, before returns)","1095571137.42",info,INFO
+B9.05,Overstatement of current 'revenue' vs net Completed (%),"19.4",info,INFO
+B9.06,Total refunds,"37720804.91",info,INFO
+B9.07,Refunds as % of net revenue (Completed),"3.44",info,INFO
+B9.08,"Gross margin %, Completed, after discounts, before returns","28.89",info,INFO
+B10.01,Products with at least one sale,"9996",info,INFO
+B10.02,Share of sold products that make 80% of gross revenue (%),"51.8",info,INFO
+B10.03,Share of buying customers that make 80% of gross revenue (%),"70.5",info,INFO
+B10.04,Top 10 brands: share of gross revenue (%),"27.7",info,INFO
+B10.05,Lowest brand margin (%),"29.1",info,INFO
+B10.06,Highest brand margin (%),"31.0",info,INFO
+B10.07,Seasonality: busiest month orders / quietest full month orders,"1.25",info,INFO
+9500,598,2026-10-18,2024-10-23,725
+30671,1500,2026-10-18,2024-10-24,724
+3908,1871,2026-10-17,2024-10-24,723
+10382,705,2026-10-16,2024-10-26,720
+39806,598,2026-10-18,2024-10-28,720
+9002,705,2026-10-16,2024-10-27,719
+18108,85,2026-10-14,2024-10-25,719
+38263,1584,2026-10-08,2024-10-22,716
+12142,155,2026-10-10,2024-10-25,715
+37585,1542,2026-10-07,2024-10-24,713
+16977,1974,2026-10-06,2024-10-25,711
+15663,1446,2026-10-18,2024-11-07,710
+30964,52,2026-10-07,2024-10-27,710
+21751,1974,2026-10-06,2024-10-27,709
+30088,353,2026-10-09,2024-10-31,708
+30792,593,2026-10-16,2024-11-07,708
+6318,686,2026-10-08,2024-11-02,705
+40560,705,2026-10-16,2024-11-10,705
+17434,853,2026-09-29,2024-10-26,703
+2294,586,2026-10-17,2024-11-14,702
+Completed,33978,84.9,66268,1110390414.49,
+Cancelled,4023,10.1,7908,131861144.64,
+Processing,694,1.7,1349,22548633.94,
+Partially Fulfilled,675,1.7,1347,22803758.67,
+On Hold,630,1.6,1197,20788598.64,
+Active,8499,66305,1113233803.23
+Discontinued,995,7728,128464892.60
+Temporarily Unavailable,319,2579,41847902.58
+Preorder,187,1457,24845951.97
+"2024-10",563,1081,18481156.59,6
+"2024-11",1647,3210,52689014.22,52
+"2024-12",1651,3227,54219241.26,51
+"2025-01",1722,3405,57730189.47,64
+"2025-02",1451,2861,48135731.02,66
+"2025-03",1700,3361,57105589.90,70
+"2025-04",1596,3012,49396233.78,46
+"2025-05",1683,3313,55753151.95,69
+"2025-06",1673,3265,53446503.31,69
+"2025-07",1644,3225,53235516.83,67
+"2025-08",1665,3264,54806639.17,49
+"2025-09",1609,3216,53252048.50,65
+"2025-10",1703,3311,55403208.48,68
+"2025-11",1578,3032,50291190.49,49
+"2025-12",1809,3554,59754301.36,72
+"2026-01",1776,3491,58232797.24,70
+"2026-02",1495,2879,48603732.67,67
+"2026-03",1718,3367,55979377.85,55
+"2026-04",1676,3237,55339942.99,56
+"2026-05",1697,3299,54544046.84,56
+"2026-06",1665,3163,53069643.55,65
+"2026-07",1676,3261,55432432.92,66
+"2026-08",1682,3304,56775775.41,70
+"2026-09",1713,3367,56070097.26,53
+"2026-10",1208,2364,40644987.32,72
+Dealer,418,8200,19.6,32583.19
+Service Station,411,8378,20.4,32765.19
+Corporate Customer,394,7940,20.2,33229.83
+Auto Parts Store,390,7922,20.3,32656.94
+Fleet Operator,387,7560,19.5,32295.03

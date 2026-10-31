@@ -2,7 +2,7 @@ with product_sales as (
     select 
         p.product_id,
         p.product_name,
-        sum(oi.quantity * oi.unit_sale_price) as product_revenue
+        sum(oi.quantity * oi.unit_sale_price - oi.discount_amount) as product_revenue
     from 
         order_items oi
     join 

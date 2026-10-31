@@ -4,7 +4,7 @@ with rfm_raw as (
         c.customer_name,
         current_date - max(o.order_date) as recency,
         count(distinct o.order_id) as frequency,
-        sum(oi.quantity * oi.unit_sale_price) as monetary
+        sum(oi.quantity * oi.unit_sale_price - oi.discount_amount) as monetary
     from customers c
     left join orders o on c.customer_id = o.customer_id
     left join order_items oi on o.order_id = oi.order_id

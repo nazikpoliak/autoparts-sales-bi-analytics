@@ -8,6 +8,8 @@ with rfm_raw as (
     from customers c
     left join orders o on c.customer_id = o.customer_id
     left join order_items oi on o.order_id = oi.order_id
+    join order_statuses os on o.order_status_id = os.order_status_id
+    where os.status_name = 'Completed'
     group by c.customer_id, c.customer_name
 ), 
 rfm_scores as (

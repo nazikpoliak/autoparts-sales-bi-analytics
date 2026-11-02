@@ -1,7 +1,7 @@
-import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 import random
+import sys
 
 # Add parent directory to python path to import db module
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -15,10 +15,10 @@ def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
     with get_connection() as conn:
         with conn.cursor() as cur:
             
-            # 1. Fetch necessary reference data and entities for foreign keys
+            # 1. Fetch reference data and entities for foreign keys
             print("Fetching reference data for orders...")
-            cur.execute("SELECT customer_id, city_id FROM customers;")
-            customers = cur.fetchall()  # [(customer_id, city_id), ...]
+            cur.execute("SELECT c.customer_id, ci.region_id FROM customers c JOIN cities ci ON c.city_id = ci.city_id;")
+            customers = cur.fetchall()  # [(customer_id, region_id), ...]
 
             cur.execute("SELECT salesperson_id, region_id FROM salespersons;")
             salespersons = cur.fetchall()  # [(salesperson_id, region_id), ...]
@@ -56,10 +56,10 @@ def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
                 batch_orders_data = []
 
                 for _ in range(current_batch_size):
-                    customer_id, customer_city_id = random.choice(customers)
+                    customer_id, customer_region_id = random.choice(customers)
                     
                     # Pick salesperson from the same region or random
-                    matching_salespersons = [sp[0] for sp in salespersons if sp[1] == customer_city_id]
+                    matching_salespersons = [sp[0] for sp in salespersons if sp[1] == customer_region_id]
                     salesperson_id = random.choice(matching_salespersons) if matching_salespersons and random.random() > 0.3 else random.choice(salespersons)[0]
                     
                     sales_channel_id = random.choice(sales_channels)

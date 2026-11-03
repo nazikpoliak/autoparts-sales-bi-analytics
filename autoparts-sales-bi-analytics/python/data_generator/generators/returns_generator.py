@@ -58,10 +58,12 @@ def generate_returns(return_count: int = 1500):
                 notes = random.choice(notes_options)
 
                 # Insert return header and get return_id
+                
                 cur.execute(
                     """
                     INSERT INTO returns (order_id, customer_id, return_reason_id, return_date, notes)
                     VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (order_id) DO NOTHING
                     RETURNING return_id;
                     """,
                     (order_id, customer_id, reason_id, return_date, notes)

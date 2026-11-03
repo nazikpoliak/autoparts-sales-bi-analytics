@@ -22,8 +22,8 @@ rfm_scores as (
         frequency,
         monetary,
         ntile(5) over (order by recency desc) as recency_score,
-        ntile(5) over (order by frequency desc) as frequency_score,
-        ntile(5) over (order by monetary desc) as monetary_score
+        ntile(5) over (order by frequency) as frequency_score,
+        ntile(5) over (order by monetary) as monetary_score
     from rfm_raw
 )
 

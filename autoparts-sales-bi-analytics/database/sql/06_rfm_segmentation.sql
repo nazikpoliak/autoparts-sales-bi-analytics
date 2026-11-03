@@ -2,7 +2,7 @@ with rfm_raw as (
     select
         c.customer_id,
         c.customer_name,
-        current_date - max(o.order_date) as recency,
+        max(o.order_date)::date + 1 as recency,
         count(distinct o.order_id ) as frequency,
         sum(oi.quantity * oi.unit_sale_price - oi.discount_amount - coalesce(ri.refund_unit_price, 0)) as monetary
     from customers c
@@ -21,7 +21,7 @@ rfm_scores as (
         recency,
         frequency,
         monetary,
-        ntile(5) over (order by recency desc) as recency_score,
+        ntile(5) over (order by recency) as recency_score,
         ntile(5) over (order by frequency) as frequency_score,
         ntile(5) over (order by monetary) as monetary_score
     from rfm_raw

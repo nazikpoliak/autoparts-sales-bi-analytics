@@ -76,6 +76,7 @@ def load_reference_data():
                     """
                     INSERT INTO salespersons (first_name, last_name, region_id, hire_date, is_active)
                     VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (first_name, last_name, region_id) DO NOTHING;
                     """,
                     (
                         row["first_name"],

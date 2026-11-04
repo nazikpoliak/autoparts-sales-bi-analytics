@@ -36,7 +36,9 @@ cumulative_calc as (
         product_id,
         product_name,
         product_revenue,
-        sum(product_revenue) over (order by product_revenue desc) as running_total,
+        sum(product_revenue) over (
+            order by product_revenue desc rows between unbounded preceding and current row
+            ) as running_total,
         sum(product_revenue) over () as grand_total
     from net_product_sales
 ),
@@ -55,7 +57,7 @@ select
     round(cum_percentage, 2) as cumulative_pct,
     case 
         when cum_percentage <= 80 then 'A'
-        when cum_percentage <= 95 then 'B'
+        when cum_percentage > 80 and cum_percentage <= 95 then 'B'
         else 'C'
     end as abc_class
 from percentage_calc

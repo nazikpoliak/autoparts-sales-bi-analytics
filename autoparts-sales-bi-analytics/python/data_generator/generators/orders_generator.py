@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from db import get_connection
 
-def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
+def generate_orders(total_orders: int = 80000, batch_size: int = 4000):
     """Generates realistic orders and their items in batches using RETURNING clause."""
     print(f"Starting generation of {total_orders} orders in batches of {batch_size}...")
 
@@ -17,8 +17,8 @@ def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
             
             # 1. Fetch reference data and entities for foreign keys
             print("Fetching reference data for orders...")
-            cur.execute("SELECT c.customer_id, ci.region_id FROM customers c JOIN cities ci ON c.city_id = ci.city_id;")
-            customers = cur.fetchall()  # [(customer_id, region_id), ...]
+            cur.execute("SELECT c.customer_id, c.registration_date, ci.region_id FROM customers c JOIN cities ci ON c.city_id = ci.city_id;")
+            customers = cur.fetchall()  # [(customer_id, registration_date, region_id), ...]
 
             cur.execute("SELECT salesperson_id, region_id FROM salespersons;")
             salespersons = cur.fetchall()  # [(salesperson_id, region_id), ...]
@@ -47,7 +47,7 @@ def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
                 else:
                     status_weights.append(5 / max(1, len(order_statuses) - 2))
 
-            start_date = datetime.now() - timedelta(days=2 * 365) # 2 years of history
+            system_start_date = datetime.now() - timedelta(days=2 * 365) # 2 years of history
             generated_orders_count = 0
             generated_items_count = 0
 
@@ -56,8 +56,8 @@ def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
                 batch_orders_data = []
 
                 for _ in range(current_batch_size):
-                    customer_id, customer_region_id = random.choice(customers)
-                    
+                    customer_id, customer_registration_date, customer_region_id = random.choice(customers)
+
                     # Pick salesperson from the same region or random
                     matching_salespersons = [sp[0] for sp in salespersons if sp[1] == customer_region_id]
                     salesperson_id = random.choice(matching_salespersons) if matching_salespersons and random.random() > 0.3 else random.choice(salespersons)[0]
@@ -65,9 +65,14 @@ def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
                     sales_channel_id = random.choice(sales_channels)
                     order_status_id = random.choices(status_ids, weights=status_weights)[0]
 
-                    # Random order date over the last 2 years
-                    days_offset = random.randint(0, 2 * 365)
-                    order_date = start_date + timedelta(days=days_offset, hours=random.randint(8, 19), minutes=random.randint(0, 59))
+                    # Random order date strictly bounded by client registration date and 2-year system limit
+                    earliest_possible_date = max(customer_registration_date, system_start_date)
+                    max_days_possible = (datetime.now() - earliest_possible_date).days
+                    if max_days_possible < 0:
+                        max_days_possible = 0
+                        
+                    days_offset = random.randint(0, max_days_possible)
+                    order_date = earliest_possible_date + timedelta(days=days_offset, hours=random.randint(8, 19), minutes=random.randint(0, 59))
 
                     customer_reference = f"PO-{random.randint(10000, 99999)}" if random.random() > 0.5 else None
                     notes = "Regular delivery" if random.random() > 0.8 else None
@@ -146,4 +151,4 @@ def generate_orders(total_orders: int = 40000, batch_size: int = 2000):
     print(f"Success! Generated {generated_orders_count} orders and {generated_items_count} order items.")
 
 if __name__ == "__main__":
-    generate_orders(40000)
+    generate_orders(80000, 4000)  # Default values for total orders and batch size

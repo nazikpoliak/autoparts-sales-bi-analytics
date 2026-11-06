@@ -1,45 +1,75 @@
-select
-    'Orders without valid customer' AS check_name,
-    COUNT(*) AS orphan_count
-from orders o
-left join customers c on o.customer_id = c.customer_id
-where c.customer_id is null;
+CREATE TABLE IF NOT EXISTS dq_results (
+    check_id SERIAL PRIMARY KEY,
+    check_name VARCHAR(150) NOT NULL,
+    severity VARCHAR(20) NOT NULL, -- 'CRITICAL', 'HIGH', 'MEDIUM'
+    failed_rows INT NOT NULL,
+    checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+TRUNCATE TABLE dq_results RESTART IDENTITY;
+
+INSERT INTO dq_results (check_name, severity, failed_rows)
+SELECT 
+    'Orders before customer registration date',
+    'CRITICAL',
+    COUNT(*)
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE o.order_date < c.registration_date;
 
 
+INSERT INTO dq_results (check_name, severity, failed_rows)
+SELECT 
+    'Orders without any order items (orphaned orders)',
+    'HIGH',
+    COUNT(*)
+FROM orders o
+LEFT JOIN order_items oi ON o.order_id = oi.order_id
+WHERE oi.order_item_id IS NULL;
 
-select
-    'Order items without valid order or product' AS check_name,
-    COUNT(*) AS orphan_count
-from order_items oi
-left join orders o on oi.order_id = o.order_id
-left join products p on oi.product_id = p.product_id
-where o.order_id is null or p.product_id is null;
-
-
-
-select
-    'Returns without valid order' AS check_name,
-    COUNT(*) AS orphan_count
-from returns r
-left join orders o on r.order_id = o.order_id
-where o.order_id is null;
-
-
-
-select
-    'Order items with invalid price or quantity' AS check_name,
-    COUNT(*) AS invalid_count
-from order_items
-where unit_sale_price <= 0 or quantity <= 0;
+INSERT INTO dq_results (check_name, severity, failed_rows)
+SELECT 
+    'Return date earlier than order date',
+    'CRITICAL',
+    COUNT(*)
+FROM returns r
+JOIN orders o ON r.order_id = o.order_id
+WHERE r.return_date < o.order_date;
 
 
+INSERT INTO dq_results (check_name, severity, failed_rows)
+SELECT 
+    'Return quantity exceeds ordered quantity',
+    'HIGH',
+    COUNT(*)
+FROM return_items ri
+JOIN order_items oi ON ri.order_item_id = oi.order_item_id
+WHERE ri.quantity > oi.quantity;
 
-select 'Total Customers' AS check_name, COUNT(*)::TEXT AS value FROM customers
-union all
-select 'Total Orders' AS check_name, COUNT(*)::TEXT AS value FROM orders
-union all
-select 'Total Products' AS check_name, COUNT(*)::TEXT AS value FROM products
-union all
-select 'Total Order Items' AS check_name, COUNT(*)::TEXT AS value FROM order_items
-union all
-select 'Total Returns' AS check_name, COUNT(*)::TEXT AS value FROM returns;
+
+INSERT INTO dq_results (check_name, severity, failed_rows)
+SELECT 
+    'Discount amount exceeds line gross amount',
+    'MEDIUM',
+    COUNT(*)
+FROM order_items
+WHERE discount_amount > (quantity * unit_sale_price);
+
+
+SELECT 
+    check_name,
+    severity,
+    failed_rows,
+    CASE 
+        WHEN failed_rows = 0 THEN 'PASS'
+        WHEN severity = 'CRITICAL' THEN 'FAIL (CRITICAL)'
+        ELSE 'WARNING'
+    END as status
+FROM dq_results
+ORDER BY 
+    CASE severity 
+        WHEN 'CRITICAL' THEN 1 
+        WHEN 'HIGH' THEN 2 
+        else 3 
+    end, 
+    failed_rows DESC;

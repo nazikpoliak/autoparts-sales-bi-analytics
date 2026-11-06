@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./autoparts-sales-bi-analytics/python/data_generator"
+    ]
+}

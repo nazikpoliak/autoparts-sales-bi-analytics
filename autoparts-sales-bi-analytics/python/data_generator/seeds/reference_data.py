@@ -185,46 +185,46 @@ SUBCATEGORIES = [
 ]
 
 BRANDS = [
-    {"brand_name": "Bosch", "country": "Germany", "status": "Active"},
-    {"brand_name": "MANN-FILTER", "country": "Germany", "status": "Active"},
-    {"brand_name": "MAHLE", "country": "Germany", "status": "Active"},
-    {"brand_name": "Febi Bilstein", "country": "Germany", "status": "Active"},
-    {"brand_name": "Schaeffler", "country": "Germany", "status": "Active"},
-    {"brand_name": "INA", "country": "Germany", "status": "Active"},
-    {"brand_name": "FAG", "country": "Germany", "status": "Active"},
-    {"brand_name": "Lemforder", "country": "Germany", "status": "Active"},
-    {"brand_name": "ZF", "country": "Germany", "status": "Active"},
-    {"brand_name": "Hengst", "country": "Germany", "status": "Active"},
-    {"brand_name": "Brembo", "country": "Italy", "status": "Active"},
-    {"brand_name": "Valeo", "country": "France", "status": "Active"},
-    {"brand_name": "Gates", "country": "United States", "status": "Active"},
-    {"brand_name": "Dayco", "country": "United States", "status": "Active"},
-    {"brand_name": "NGK", "country": "Japan", "status": "Active"},
-    {"brand_name": "Denso", "country": "Japan", "status": "Active"},
-    {"brand_name": "KYB", "country": "Japan", "status": "Active"},
-    {"brand_name": "Aisin", "country": "Japan", "status": "Active"},
-    {"brand_name": "NTN", "country": "Japan", "status": "Active"},
-    {"brand_name": "NSK", "country": "Japan", "status": "Active"},
-    {"brand_name": "TRW", "country": "United States", "status": "Active"},
-    {"brand_name": "Monroe", "country": "United States", "status": "Active"},
-    {"brand_name": "Delphi", "country": "United Kingdom", "status": "Active"},
-    {"brand_name": "Continental", "country": "Germany", "status": "Active"},
-    {"brand_name": "Hella", "country": "Germany", "status": "Active"},
-    {"brand_name": "Pierburg", "country": "Germany", "status": "Active"},
-    {"brand_name": "Elring", "country": "Germany", "status": "Active"},
-    {"brand_name": "Victor Reinz", "country": "Germany", "status": "Active"},
-    {"brand_name": "Meyle", "country": "Germany", "status": "Active"},
-    {"brand_name": "Textar", "country": "Germany", "status": "Active"},
-    {"brand_name": "ATE", "country": "Germany", "status": "Active"},
-    {"brand_name": "Febest", "country": "Germany", "status": "Active"},
-    {"brand_name": "Moog", "country": "United States", "status": "Active"},
-    {"brand_name": "SKF", "country": "Sweden", "status": "Active"},
-    {"brand_name": "Exide", "country": "United States", "status": "Active"},
-    {"brand_name": "Varta", "country": "Germany", "status": "Active"},
-    {"brand_name": "Yuasa", "country": "Japan", "status": "Active"},
-    {"brand_name": "BorgWarner", "country": "United States", "status": "Active"},
-    {"brand_name": "Mahle Original", "country": "Germany", "status": "Active"},
-    {"brand_name": "Bardahl", "country": "United States", "status": "Active"},
+    {"brand_name": "Bosch", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "MANN-FILTER", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "MAHLE", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Febi Bilstein", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Schaeffler", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "INA", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "FAG", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Lemforder", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "ZF", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Hengst", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Brembo", "country": "Italy", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "Valeo", "country": "France", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "Gates", "country": "United States", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Dayco", "country": "United States", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "NGK", "country": "Japan", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Denso", "country": "Japan", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "KYB", "country": "Japan", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Aisin", "country": "Japan", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "NTN", "country": "Japan", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "NSK", "country": "Japan", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "TRW", "country": "United States", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Monroe", "country": "United States", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Delphi", "country": "United Kingdom", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "Continental", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Hella", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Pierburg", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Elring", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Victor Reinz", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Meyle", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Textar", "country": "Germany", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "ATE", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Febest", "country": "Germany", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "Moog", "country": "United States", "status": "Active", "brand_tier": "Low"},
+    {"brand_name": "SKF", "country": "Sweden", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Exide", "country": "United States", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Varta", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Yuasa", "country": "Japan", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "BorgWarner", "country": "United States", "status": "Active", "brand_tier": "Mid"},
+    {"brand_name": "Mahle Original", "country": "Germany", "status": "Active", "brand_tier": "Premium"},
+    {"brand_name": "Bardahl", "country": "United States", "status": "Active", "brand_tier": "Premium"},
 ]
 
 SUPPLIERS = [
@@ -283,3 +283,85 @@ RETURN_REASONS = [
     {"reason_name": "Compatibility Issue"},
     {"reason_name": "Duplicate Order"},
 ]
+
+SUBCATEGORY_PRICE_RANGES = {
+    # Engine Parts
+    "Pistons and Rings": (1500, 7000),
+    "Gaskets and Seals": (250, 1500),
+    "Cylinder Head Components": (800, 5000),
+    "Engine Mounts": (600, 3500),
+    
+    # Transmission and Clutch
+    "Clutch Kits": (2500, 12000),
+    "Clutch Discs and Pressure Plates": (1200, 6000),
+    "Gearbox Components": (2000, 15000),
+    
+    # Brake System
+    "Brake Pads": (800, 3500),
+    "Brake Discs and Drums": (1200, 5500),
+    "Brake Calipers and Repair Kits": (500, 4000),
+    "Brake Hydraulics": (300, 2000),
+    
+    # Suspension and Steering
+    "Shock Absorbers and Struts": (1500, 7500),
+    "Control Arms and Ball Joints": (900, 4500),
+    "Steering Components": (1000, 8000),
+    "Springs and Mounts": (800, 4000),
+    
+    # Filters (Витратні матеріали, дешеві)
+    "Oil Filters": (200, 600),
+    "Air Filters": (250, 800),
+    "Fuel Filters": (300, 1200),
+    "Cabin Filters": (200, 700),
+    
+    # Electrical System
+    "Alternators and Starters": (3500, 12500),
+    "Batteries": (2500, 8500),
+    "Sensors and Switches": (400, 3000),
+    "Wiring and Connectors": (150, 1200),
+    
+    # Cooling System
+    "Radiators": (2000, 9000),
+    "Water Pumps": (1000, 4500),
+    "Thermostats": (300, 1500),
+    "Coolant Hoses": (200, 1000),
+    
+    # Fuel System
+    "Fuel Pumps": (1200, 6500),
+    "Injectors": (2500, 14000),
+    "Fuel System Sensors": (600, 3500),
+    
+    # Exhaust System
+    "Exhaust Pipes and Mounts": (500, 4000),
+    "EGR and Exhaust Components": (1500, 9500),
+    
+    # Body and Exterior
+    "Mirrors and Handles": (400, 3500),
+    "Bumpers and Grilles": (1500, 11000),
+    "Body Fasteners": (50, 300),
+    
+    # Lighting
+    "Headlights": (3500, 14000),
+    "Tail Lights": (2000, 8500),
+    "Bulbs and LED Modules": (100, 1500),
+    
+    # Bearings and Hubs
+    "Wheel Bearings": (700, 3500),
+    "Wheel Hubs": (1500, 6500),
+    
+    # Belts and Timing
+    "Timing Belts and Kits": (1200, 6000),
+    "Drive Belts": (300, 1500),
+    "Tensioners and Idlers": (600, 3500),
+    
+    # Lubricants and Fluids
+    "Engine Oils": (800, 3200),
+    "Coolants and Antifreeze": (300, 1200),
+    "Transmission Fluids": (400, 2500),
+    "Greases and Technical Fluids": (150, 800),
+    
+    # Workshop Supplies
+    "Workshop Chemicals": (150, 900),
+    "Clamps and Ties": (50, 250),
+    "Fasteners and Fittings": (50, 400),
+}

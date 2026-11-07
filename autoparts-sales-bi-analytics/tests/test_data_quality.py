@@ -2,15 +2,27 @@ from pathlib import Path
 import sys
 import pytest
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+# 1. Жорстко і чітко визначаємо корінь проєкту (папка autoparts-sales-bi-analytics)
+# Оскільки test_data_quality.py лежить у папці tests, корінь — це один рівень вище.
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
-from db import get_connection
+# 2. Додаємо шлях до папки python, де лежить db.py
+PYTHON_DIR = ROOT_DIR / "python"
+sys.path.append(str(PYTHON_DIR))
+
+try:
+    from db import get_connection
+except ImportError:
+    # Якщо раптом db.py лежить в іншій папці, пробуємо імпортувати напряму з кореня
+    sys.path.append(str(ROOT_DIR))
+    from db import get_connection
 
 
 def test_database_data_quality():
     """Test to validate data quality in the database using SQL checks."""
 
-    sql_file_path = Path(__file__).resolve().parent.parent / "sql" / "02_data_quality_checks.sql"
+    # 3. Шукаємо файл SQL у папці sql в корені проєкту
+    sql_file_path = ROOT_DIR / "sql" / "02_data_quality_checks.sql"
     
     if not sql_file_path.exists():
         pytest.skip(f"SQL file not found at {sql_file_path}. Skipping DQ tests.")
@@ -27,7 +39,6 @@ def test_database_data_quality():
         if failed_rows > 0:
             failures.append(f"[{severity}] «{check_name}»: found {failed_rows} failed rows.")
 
-    # If there are any failures, fail the test and provide a detailed message
     if failures:
         failure_message = "\n".join(f"  ❌ {f}" for f in failures)
         pytest.fail(

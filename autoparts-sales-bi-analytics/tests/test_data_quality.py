@@ -6,6 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from db import get_connection
 
+
 def test_database_data_quality():
     """Test to validate data quality in the database using SQL checks."""
 

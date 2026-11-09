@@ -66,7 +66,8 @@ CREATE TABLE order_statuses (
 
 CREATE TABLE brands (
     brand_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    brand_name VARCHAR(100) NOT NULL UNIQUE
+    brand_name VARCHAR(100) NOT NULL UNIQUE,
+    brand_tier VARCHAR(50) NOT NULL CHECK (brand_tier IN ('Premium', 'Mid', 'Low'))
 );
 
 CREATE TABLE categories (

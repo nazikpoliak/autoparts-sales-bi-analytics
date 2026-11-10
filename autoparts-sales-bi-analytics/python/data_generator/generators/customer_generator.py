@@ -12,8 +12,8 @@ from db import get_connection
 STORE_PREFIXES = ["Auto", "Moto", "Express", "Apex", "Master", "Megaparts", "Karat", "Delta", "Alpha"]
 STORE_SUFFIXES = ["Parts", "Shop", "Market", "Store", "Hub", "Express", "Depot"]
 
-SERVICE_PREFIXES = ["Turbo", "Auto", "Bosch", "Pro", "Fast", "Elite", "City", "Modern", "Mecano"]
-SERVICE_SUFFIXES = ["Service", "Garage", "Station", "Center", "Repair", "Tech"]
+SERVICE_PREFIXES = ["Turbo", "Auto", "Bosch", "Pro", "Fast", "Elite", "City", "Modern", "Mecano", "AutoFix", "MasterDrive", "TurboService", "Bosch Service", "CarDoctor", "ExpressAuto", "ProMech"]
+SERVICE_SUFFIXES = ["Service", "Garage", "Station", "Center", "Repair", "Tech", "Station", "Center", "Garage", "Workshop", "Hub"]
 
 COMPANY_NAMES = [
     "TransLogistics Ukraine", "Autoland Group", "Carpathian Transport", 
@@ -94,13 +94,6 @@ def generate_customers(count: int = 500):
                     phone = f"+380{random.randint(50, 99)}{random.randint(1000000, 9999999)}"
                     email = f"office@{customer_name.lower().replace(' ', '')}.com.ua"
                     tax_id = generate_tax_id(existing_tax_ids)
-                else:  # Individual
-                    first = random.choice(FIRST_NAMES)
-                    last = random.choice(LAST_NAMES)
-                    customer_name = f"{first} {last}"
-                    phone = f"+380{random.randint(60, 99)}{random.randint(1000000, 9999999)}"
-                    email = f"{first.lower()}.{last.lower()}{random.randint(10, 99)}@gmail.com"
-                    tax_id = None  # Individuals might not have a corporate tax id
 
                 # Fully random address assignment
                 address = generate_random_address()

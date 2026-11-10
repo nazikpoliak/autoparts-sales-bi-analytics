@@ -1,3 +1,24 @@
+DROP TABLE IF EXISTS return_items CASCADE;
+DROP TABLE IF EXISTS returns CASCADE;
+DROP TABLE IF EXISTS return_reasons CASCADE;
+DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS product_statuses CASCADE;
+DROP TABLE IF EXISTS suppliers CASCADE;
+DROP TABLE IF EXISTS subcategories CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS brands CASCADE;
+DROP TABLE IF EXISTS order_statuses CASCADE;
+DROP TABLE IF EXISTS sales_channels CASCADE;
+DROP TABLE IF EXISTS salespersons CASCADE;
+DROP TABLE IF EXISTS customers CASCADE;
+DROP TABLE IF EXISTS customer_types CASCADE;
+DROP TABLE IF EXISTS cities CASCADE;
+DROP TABLE IF EXISTS regions CASCADE;
+
+
+
 CREATE TABLE regions (
     region_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     region_name VARCHAR(100) NOT NULL UNIQUE
@@ -40,6 +61,8 @@ CREATE TABLE customers (
         UNIQUE (tax_id)
 );
 
+
+
 CREATE TABLE salespersons (
     salesperson_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     region_id INTEGER,
@@ -63,6 +86,8 @@ CREATE TABLE order_statuses (
     order_status_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     status_name VARCHAR(50) NOT NULL UNIQUE
 );
+
+
 
 CREATE TABLE brands (
     brand_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -135,6 +160,8 @@ CREATE TABLE products (
         CHECK (weight_kg IS NULL OR weight_kg >= 0)
 );
 
+
+
 CREATE TABLE orders (
     order_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     customer_id INTEGER NOT NULL,
@@ -182,6 +209,8 @@ CREATE TABLE order_items (
     CONSTRAINT chk_order_items_discount
         CHECK (discount_amount >= 0)
 );
+
+
 
 CREATE TABLE return_reasons (
     return_reason_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -233,71 +262,26 @@ CREATE TABLE return_items (
         UNIQUE (return_id, order_item_id)
 );
 
-CREATE INDEX idx_cities_region_id
-    ON cities(region_id);
-
-CREATE INDEX idx_customers_city_id
-    ON customers(city_id);
-
-CREATE INDEX idx_customers_customer_type_id
-    ON customers(customer_type_id);
-
-CREATE INDEX idx_salespersons_region_id
-    ON salespersons(region_id);
-
-CREATE INDEX idx_subcategories_category_id
-    ON subcategories(category_id);
-
-CREATE INDEX idx_products_subcategory_id
-    ON products(subcategory_id);
-
-CREATE INDEX idx_products_brand_id
-    ON products(brand_id);
-
-CREATE INDEX idx_products_supplier_id
-    ON products(supplier_id);
-
-CREATE INDEX idx_products_status_id
-    ON products(product_status_id);
-
-CREATE INDEX idx_orders_customer_id
-    ON orders(customer_id);
-
-CREATE INDEX idx_orders_salesperson_id
-    ON orders(salesperson_id);
-
-CREATE INDEX idx_orders_sales_channel_id
-    ON orders(sales_channel_id);
-
-CREATE INDEX idx_orders_status_id
-    ON orders(order_status_id);
-
-CREATE INDEX idx_orders_order_date
-    ON orders(order_date);
-
-CREATE INDEX idx_order_items_order_id
-    ON order_items(order_id);
-
-CREATE INDEX idx_order_items_product_id
-    ON order_items(product_id);
-
-CREATE INDEX idx_returns_order_id
-    ON returns(order_id);
-
-CREATE INDEX idx_returns_customer_id
-    ON returns(customer_id);
-
-CREATE INDEX idx_returns_return_reason_id
-    ON returns(return_reason_id);
-
-CREATE INDEX idx_returns_return_date
-    ON returns(return_date);
-
-CREATE INDEX idx_return_items_return_id
-    ON return_items(return_id);
-
-CREATE INDEX idx_return_items_order_item_id
-    ON return_items(order_item_id);
-
-CREATE INDEX idx_return_items_product_id
-    ON return_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_cities_region_id ON cities(region_id);
+CREATE INDEX IF NOT EXISTS idx_customers_city_id ON customers(city_id);
+CREATE INDEX IF NOT EXISTS idx_customers_customer_type_id ON customers(customer_type_id);
+CREATE INDEX IF NOT EXISTS idx_salespersons_region_id ON salespersons(region_id);
+CREATE INDEX IF NOT EXISTS idx_subcategories_category_id ON subcategories(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_subcategory_id ON products(subcategory_id);
+CREATE INDEX IF NOT EXISTS idx_products_brand_id ON products(brand_id);
+CREATE INDEX IF NOT EXISTS idx_products_supplier_id ON products(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_products_status_id ON products(product_status_id);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_salesperson_id ON orders(salesperson_id);
+CREATE INDEX IF NOT EXISTS idx_orders_sales_channel_id ON orders(sales_channel_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status_id ON orders(order_status_id);
+CREATE INDEX IF NOT EXISTS idx_orders_order_date ON orders(order_date);
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_returns_order_id ON returns(order_id);
+CREATE INDEX IF NOT EXISTS idx_returns_customer_id ON returns(customer_id);
+CREATE INDEX IF NOT EXISTS idx_returns_return_reason_id ON returns(return_reason_id);
+CREATE INDEX IF NOT EXISTS idx_returns_return_date ON returns(return_date);
+CREATE INDEX IF NOT EXISTS idx_return_items_return_id ON return_items(return_id);
+CREATE INDEX IF NOT EXISTS idx_return_items_order_item_id ON return_items(order_item_id);
+CREATE INDEX IF NOT EXISTS idx_return_items_product_id ON return_items(product_id);

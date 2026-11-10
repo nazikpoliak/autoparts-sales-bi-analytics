@@ -134,7 +134,7 @@ def generate_products(count: int = 10000):
             cur.execute("SELECT supplier_id FROM suppliers;")
             suppliers = [row[0] for row in cur.fetchall()]
 
-            cur.execute("SELECT product_status_id FROM product_statuses;")
+            cur.execute("SELECT product_status_id FROM product_statuses ORDER BY product_status_id;")
             statuses = [row[0] for row in cur.fetchall()]
 
             if not subcategories or not brands or not suppliers or not statuses:

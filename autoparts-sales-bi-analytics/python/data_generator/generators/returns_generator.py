@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from datetime import timedelta
+from datetime import datetime, timedelta
 import random
 
 # Add parent directory to python path to import db module
@@ -46,15 +46,31 @@ def generate_returns(return_count: int = 1500):
             for order_id, customer_id, order_date in selected_orders:
                 # Return happens 1 to 20 days after the order date
                 return_date = order_date + timedelta(days=random.randint(1, 20), hours=random.randint(9, 18))
+                if return_date > datetime.now():
+                    return_date = datetime.now()
                 reason_id = random.choice(return_reasons)
                 
                 notes_options = [
-                    "Defective item reported by customer",
-                    "Wrong item ordered by mistake",
-                    "Customer changed mind",
-                    "Damaged packaging during delivery",
+                    "Customer reported part not functioning as expected.",
+                    "Customer reported structural defect upon installation.",
+                    "Item arrived with visible mechanical damage.",
+                    "Part failed during initial testing.",
+                    "Does not fit customer's specific vehicle modification.",
+                    "Customer changed mind after purchase.",
+                    "Incorrect part shipped; customer requested return.",
+                    "Customer found a better price elsewhere.",
+                    "Customer reported missing components in the package.",
+                    "Customer reported that the part was incompatible with their vehicle.",
+                    "Customer reported that the part was defective upon arrival.",
+                    "Customer reported that the part was damaged during shipping.",
+                    "Ordered incorrect part by mistake, requested exchange.",
+                    "Incompatible with standard OEM mounting points.",
+                    "Customer found alternative option locally.",
+                    "Order cancelled by client before installation.",
+                    "Unopened package returned within standard return window.",
                     None
                 ]
+
                 notes = random.choice(notes_options)
 
                 # Insert return header and get return_id

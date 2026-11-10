@@ -29,8 +29,14 @@ def generate_orders(total_orders: int = 80000, batch_size: int = 4000):
             cur.execute("SELECT order_status_id, status_name FROM order_statuses;")
             order_statuses = cur.fetchall()  # [(status_id, status_name), ...]
 
-            cur.execute("SELECT product_id, purchase_price, standard_sale_price FROM products;")
+            cur.execute("""
+                SELECT p.product_id, p.standard_sale_price, p.purchase_price, p.brand_id, p.subcategory_id 
+                FROM products p
+                JOIN product_statuses ps ON p.product_status_id = ps.product_status_id
+                WHERE ps.status_name = 'Active' OR ps.status_name = 'Preorder';
+                """)
             products = cur.fetchall()  # [(product_id, purchase_price, standard_sale_price), ...]
+            product_weights = [1 / (i ** 1.3) for i in range(1, len(products) + 1)]
 
             if not customers or not salespersons or not sales_channels or not order_statuses or not products:
                 raise RuntimeError("Required data for orders is missing! Ensure customers, products, and seeds are loaded.")
@@ -106,14 +112,14 @@ def generate_orders(total_orders: int = 80000, batch_size: int = 4000):
                 batch_items_data = []
                 for order_id in inserted_order_ids:
                     # Each order has 1 to 4 items
-                    items_count = random.choices([1, 2, 3, 4], weights=[40, 35, 15, 10])[0]
+                    items_count = random.choices([1, 2, 3, 4], product_weights)[0]
                     order_products = random.sample(products, min(items_count, len(products)))
                     
                     for prod in order_products:
                         product_id, purchase_price, standard_sale_price = prod
                         
                         # Quantity (1 to 5)
-                        quantity = random.choices([1, 2, 3, 4, 5], weights=[50, 30, 10, 5, 5])[0]
+                        quantity = random.choices([1, 2, 3, 4, 5], product_weights)[0]
                         
                         # Unit cost and sale price with slight fluctuation
                         unit_cost = round(float(purchase_price) * random.uniform(0.98, 1.02), 2)

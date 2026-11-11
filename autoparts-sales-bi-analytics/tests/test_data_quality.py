@@ -22,7 +22,7 @@ def test_database_data_quality():
     """Test to validate data quality in the database using SQL checks."""
 
     # 3. Шукаємо файл SQL у папці sql в корені проєкту
-    sql_file_path = ROOT_DIR / "sql" / "02_data_quality_checks.sql"
+    sql_file_path = ROOT_DIR / "sql" / "01_data_quality_checks.sql"
     
     if not sql_file_path.exists():
         pytest.skip(f"SQL file not found at {sql_file_path}. Skipping DQ tests.")

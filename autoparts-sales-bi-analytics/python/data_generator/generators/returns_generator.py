@@ -86,7 +86,6 @@ def generate_returns(return_count: int = 1500):
                 )
                 return_id = cur.fetchone()[0]
                 returns_inserted += 1
-
                 # Fetch items belonging to this order
                 cur.execute(
                     """
@@ -105,7 +104,7 @@ def generate_returns(return_count: int = 1500):
                     return_items_data = []
                     for item_id, prod_id, qty, unit_price, discount_amount in items_to_return:
                         return_qty = qty  # Returning full quantity of the order item
-                        refund_price = (float(unit_price) * return_qty) - (float(discount_amount) / return_qty if return_qty > 0 else 0)  # Refund price after discount
+                        refund_price = float(unit_price) - (float(discount_amount) / return_qty if return_qty > 0 else 0)  # Refund price after discount
 
                         return_items_data.append((
                             return_id,

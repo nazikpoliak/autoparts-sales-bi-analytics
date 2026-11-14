@@ -9,13 +9,13 @@ from decimal import Decimal
 import pytest
 
 from common import make_rng
-from config import GenerationConfig
-from generators.customer_generator import CUSTOMER_COLUMNS, build_customers
-from generators.product_generator import PRODUCT_COLUMNS, build_products
-from generators.returns_generator import (
+from python.data_generator.config import GenerationConfig
+from python.data_generator.generators.customer_generator import CUSTOMER_COLUMNS, build_customers
+from python.data_generator.generators.product_generator import PRODUCT_COLUMNS, build_products
+from python.data_generator.generators.returns_generator import (
     CompletedOrder, SoldLine, pick_return_date, plan_return_items, plan_returns, refund_unit_price,
 )
-from seeds.reference_data import (
+from python.data_generator.seeds.reference_data import (
     BRANDS, CITIES, CUSTOMER_TYPES, PRODUCT_STATUSES, SUBCATEGORIES, SUPPLIERS,
 )
 

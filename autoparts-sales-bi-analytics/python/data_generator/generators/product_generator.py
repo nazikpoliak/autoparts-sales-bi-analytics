@@ -1,212 +1,187 @@
-import sys
-from pathlib import Path
-import random
+"""Product generator: a realistic auto-parts catalogue.
 
-# Add parent directory to python path to import db module
+* Brands are matched to categories (no spark plugs by an oil brand, batteries only by battery
+  makers) and suppliers to the categories they specialise in.
+* Purchase prices follow a price band per *subcategory*, scaled by the brand's positioning
+  (premium / standard / value); the markup depends on the category, so margins differ.
+* Status and ``created_at`` are generated together: discontinued items are old, pre-order items
+  are brand new, some regular items are launched during the generation period. The order
+  generator later respects both (nothing is sold before it exists).
+"""
+
+from __future__ import annotations
+
+import random
+import string
+import sys
+from datetime import date, datetime, time, timedelta
+from pathlib import Path
+from typing import Any, Sequence
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from db import get_connection
+from common import GenerationError, make_rng, money, require_names  # noqa: E402
+from config import GenerationConfig  # noqa: E402
+from db import copy_rows, ensure_empty, fetch_name_map, get_connection  # noqa: E402
+from profiles import (  # noqa: E402
+    BRAND_TIER_MULTIPLIER,
+    BRAND_TIERS,
+    CATEGORY_BRANDS,
+    CATEGORY_MARKUP,
+    POSITIONS,
+    PRODUCT_STATUS_WEIGHTS,
+    SUBCATEGORY_PROFILES,
+    SUPPLIER_SPECIALISATION,
+)
 
-# Lists of auto parts naming components to make products look realistic
-PART_ADJECTIVES = ["Front", "Rear", "Upper", "Lower", "Left", "Right", "Inner", "Outer", "Heavy-Duty", "Premium", "Standard", "Turbo"]
-PART_NOUNS = [
-    "Brake Pad Set", "Brake Disc", "Oil Filter", "Air Filter", "Fuel Filter", "Cabin Filter",
-    "Shock Absorber", "Control Arm", "Wheel Bearing", "Timing Belt Kit", "Water Pump", "Thermostat",
-    "Spark Plug", "Glow Plug", "Alternator", "Starter Motor", "Clutch Kit", "Flywheel",
-    "CV Joint", "Tie Rod End", "Stabilizer Link", "Ignition Coil", "Lambda Sensor", "Radiator",
-    "EGR Valve", "Fuel Pump", "Gasket Set", "Engine Mount", "Brake Caliper", "Wheel Hub"
-]
-
-SUBCATEGORY_PRICE_RANGES = {
-    # Engine Parts
-    "Pistons and Rings": (1500, 7000),
-    "Gaskets and Seals": (250, 1500),
-    "Cylinder Head Components": (800, 5000),
-    "Engine Mounts": (600, 3500),
-    
-    # Transmission and Clutch
-    "Clutch Kits": (2500, 12000),
-    "Clutch Discs and Pressure Plates": (1200, 6000),
-    "Gearbox Components": (2000, 15000),
-    
-    # Brake System
-    "Brake Pads": (800, 3500),
-    "Brake Discs and Drums": (1200, 5500),
-    "Brake Calipers and Repair Kits": (500, 4000),
-    "Brake Hydraulics": (300, 2000),
-    
-    # Suspension and Steering
-    "Shock Absorbers and Struts": (1500, 7500),
-    "Control Arms and Ball Joints": (900, 4500),
-    "Steering Components": (1000, 8000),
-    "Springs and Mounts": (800, 4000),
-    
-    # Filters (Витратні матеріали, дешеві)
-    "Oil Filters": (200, 600),
-    "Air Filters": (250, 800),
-    "Fuel Filters": (300, 1200),
-    "Cabin Filters": (200, 700),
-    
-    # Electrical System
-    "Alternators and Starters": (3500, 12500),
-    "Batteries": (2500, 8500),
-    "Sensors and Switches": (400, 3000),
-    "Wiring and Connectors": (150, 1200),
-    
-    # Cooling System
-    "Radiators": (2000, 9000),
-    "Water Pumps": (1000, 4500),
-    "Thermostats": (300, 1500),
-    "Coolant Hoses": (200, 1000),
-    
-    # Fuel System
-    "Fuel Pumps": (1200, 6500),
-    "Injectors": (2500, 14000),
-    "Fuel System Sensors": (600, 3500),
-    
-    # Exhaust System
-    "Exhaust Pipes and Mounts": (500, 4000),
-    "EGR and Exhaust Components": (1500, 9500),
-    
-    # Body and Exterior
-    "Mirrors and Handles": (400, 3500),
-    "Bumpers and Grilles": (1500, 11000),
-    "Body Fasteners": (50, 300),
-    
-    # Lighting
-    "Headlights": (3500, 14000),
-    "Tail Lights": (2000, 8500),
-    "Bulbs and LED Modules": (100, 1500),
-    
-    # Bearings and Hubs
-    "Wheel Bearings": (700, 3500),
-    "Wheel Hubs": (1500, 6500),
-    
-    # Belts and Timing
-    "Timing Belts and Kits": (1200, 6000),
-    "Drive Belts": (300, 1500),
-    "Tensioners and Idlers": (600, 3500),
-    
-    # Lubricants and Fluids
-    "Engine Oils": (800, 3200),
-    "Coolants and Antifreeze": (300, 1200),
-    "Transmission Fluids": (400, 2500),
-    "Greases and Technical Fluids": (150, 800),
-    
-    # Workshop Supplies
-    "Workshop Chemicals": (150, 900),
-    "Clamps and Ties": (50, 250),
-    "Fasteners and Fittings": (50, 400),
-}
+PRODUCT_COLUMNS = (
+    "subcategory_id", "brand_id", "supplier_id", "product_status_id", "sku", "product_name",
+    "description", "unit_of_measure", "purchase_price", "standard_sale_price", "weight_kg", "created_at",
+)
+LEGACY_CATALOGUE_YEARS = 4
 
 
-def generate_sku(brand_name: str, existing_skus: set) -> str:
-    """Generates a unique realistic SKU code based on the brand name."""
-    prefix = brand_name[:3].upper().replace(" ", "X")
+def _random_moment(rng: random.Random, first_day: date, last_day: date, early_bias: bool = False) -> datetime:
+    """Random timestamp between two dates (inclusive); ``early_bias`` favours earlier days."""
+    span = max((last_day - first_day).days, 0)
+    fraction = rng.betavariate(1.0, 1.5) if early_bias else rng.random()
+    day = first_day + timedelta(days=int(fraction * span))
+    return datetime.combine(day, time(rng.randint(8, 18), rng.randint(0, 59), rng.randint(0, 59)))
+
+
+def _created_at(rng: random.Random, cfg: GenerationConfig, status: str) -> datetime:
+    """Creation timestamp consistent with the product status."""
+    last_day = cfg.end_date - timedelta(days=1)
+    if status == "Preorder":  # newly announced, not on sale yet
+        return _random_moment(rng, max(cfg.start_date, cfg.end_date - timedelta(days=45)), last_day)
+    launched_in_period = rng.random() < (0.05 if status != "Active" else 0.15)
+    if launched_in_period:
+        return _random_moment(rng, cfg.start_date, max(cfg.start_date, cfg.end_date - timedelta(days=60)),
+                              early_bias=True)
+    first_day = cfg.start_date - timedelta(days=365 * LEGACY_CATALOGUE_YEARS)
+    return _random_moment(rng, first_day, cfg.start_date - timedelta(days=1))
+
+
+def _purchase_price(rng: random.Random, price_min: float, price_max: float, tier_multiplier: float) -> float:
+    """Skewed towards the cheaper end of the band (few expensive parts), scaled by brand tier."""
+    position = rng.betavariate(1.2, 2.2)
+    base = price_min * (price_max / price_min) ** position
+    return max(5.0, base * tier_multiplier * rng.uniform(0.95, 1.05))
+
+
+def _supplier_weights(category: str, suppliers: dict[str, int]) -> tuple[list[int], list[float]]:
+    """Supplier ids and weights for a category: specialists dominate, other specialists are excluded."""
+    ids: list[int] = []
+    weights: list[float] = []
+    for name, supplier_id in suppliers.items():
+        categories = SUPPLIER_SPECIALISATION.get(name)
+        if categories is None:
+            weight = 1.0                      # generalist
+        elif category in categories:
+            weight = 4.0                      # specialist of this category
+        else:
+            continue                          # specialist of other categories
+        ids.append(supplier_id)
+        weights.append(weight)
+    return ids, weights
+
+
+def _unique_part_number(rng: random.Random, prefix: str, used_skus: set[str]) -> tuple[str, str]:
+    """Return ``(sku, manufacturer part number)`` not used before."""
     while True:
-        code = f"{prefix}-{random.randint(10000, 99999)}"
-        if code not in existing_skus:
-            existing_skus.add(code)
-            return code
-
-def get_brand_margin(brand_tier):
-    if brand_tier == "Premium":
-        return round(random.uniform(0.35, 0.42), 4)
-    elif brand_tier == "Mid":
-        return round(random.uniform(0.24, 0.31), 4)
-    else:  # low-tier brands
-        return round(random.uniform(0.15, 0.22), 4)
+        number = f"{rng.randint(100, 999)}{rng.choice(string.ascii_uppercase)}{rng.randint(1000, 9999)}"
+        sku = f"{prefix}-{number}"
+        if sku not in used_skus:
+            used_skus.add(sku)
+            return sku, number
 
 
-def generate_products(count: int = 10000):
-    """Generates a realistic catalog of auto parts products and inserts them into the database."""
-    print(f"Starting generation of {count} products...")
+def build_products(
+    cfg: GenerationConfig,
+    rng: random.Random,
+    subcategories: Sequence[tuple[int, str, str]],
+    brands: dict[str, int],
+    suppliers: dict[str, int],
+    statuses: dict[str, int],
+    existing_skus: set[str] | None = None,
+) -> list[tuple[Any, ...]]:
+    """Create ``cfg.products`` product rows (pure function, no database access).
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            # Fetch reference data mappings
-            cur.execute("SELECT subcategory_id, subcategory_name FROM subcategories;")
-            subcategories = cur.fetchall()  # [(id, name), ...]
-            
-            cur.execute("SELECT brand_id, brand_name, brand_tier FROM brands;")
-            brands = cur.fetchall()  # [(id, name, tier), ...]
+    ``subcategories`` is a list of ``(subcategory_id, subcategory_name, category_name)``.
+    Row layout follows :data:`PRODUCT_COLUMNS`.
+    """
+    require_names("product_statuses", statuses, list(PRODUCT_STATUS_WEIGHTS))
+    unknown = [name for _, name, _ in subcategories if name not in SUBCATEGORY_PROFILES]
+    if unknown:
+        raise GenerationError(f"No product profile for subcategories {unknown}; extend profiles.py")
+    if not suppliers:
+        raise GenerationError("No suppliers found. Run `python main.py seeds` first.")
 
-            cur.execute("SELECT supplier_id FROM suppliers;")
-            suppliers = [row[0] for row in cur.fetchall()]
+    used_skus = set(existing_skus or ())
+    status_names = list(PRODUCT_STATUS_WEIGHTS)
+    status_weights = [PRODUCT_STATUS_WEIGHTS[name] for name in status_names]
+    # Catalogue breadth follows demand only partially: niche subcategories still have many items.
+    subcategory_weights = [0.5 + SUBCATEGORY_PROFILES[name].demand for _, name, _ in subcategories]
 
-            cur.execute("SELECT product_status_id FROM product_statuses ORDER BY product_status_id;")
-            statuses = [row[0] for row in cur.fetchall()]
+    rows: list[tuple[Any, ...]] = []
+    for _ in range(cfg.products):
+        subcategory_id, subcategory, category = rng.choices(list(subcategories), weights=subcategory_weights, k=1)[0]
+        profile = SUBCATEGORY_PROFILES[subcategory]
 
-            if not subcategories or not brands or not suppliers or not statuses:
-                raise RuntimeError("Reference data for products is missing! Run load_seeds.py first.")
+        brand_names = [name for name in (profile.brands or CATEGORY_BRANDS[category]) if name in brands]
+        if not brand_names:
+            raise GenerationError(f"No known brands for subcategory '{subcategory}' (category '{category}')")
+        brand = rng.choice(brand_names)
+        supplier_ids, supplier_weights = _supplier_weights(category, suppliers)
+        supplier_id = rng.choices(supplier_ids, weights=supplier_weights, k=1)[0]
+        status = rng.choices(status_names, weights=status_weights, k=1)[0]
 
-            # Get existing SKUs to prevent unique constraint violations
-            cur.execute("SELECT sku FROM products;")
-            existing_skus = {row[0] for row in cur.fetchall()}
+        prefix = "".join(ch for ch in brand.upper() if ch.isalnum())[:3].ljust(3, "X")
+        sku, part_number = _unique_part_number(rng, prefix, used_skus)
+        noun = rng.choice(profile.nouns)
+        position = rng.choice(POSITIONS) if profile.positions else None
+        product_name = f"{brand} {noun}{' ' + position if position else ''}, {part_number}"
+        description = (f"{noun}{' (' + position.lower() + ')' if position else ''} by {brand} "
+                       f"for passenger cars and light commercial vehicles. Subcategory: {subcategory}.")
 
-            products_to_insert = []
-            
-            print("Preparing product data...")
-            for _ in range(count):
-                subcat_id, subcat_name = random.choice(subcategories)
-                brand_id, brand_name, brand_tier = random.choice(brands)
-                supplier_id = random.choice(suppliers)
-                
-                # Distribution of statuses: 85% Active, 10% Discontinued, 5% Preorder/Temp unavailable
-                status_id = random.choices(statuses, weights=[85, 10, 3, 2] if len(statuses) >= 4 else [85, 15])[0]
+        tier = BRAND_TIERS.get(brand, "standard")
+        purchase = _purchase_price(rng, profile.price_min, profile.price_max, BRAND_TIER_MULTIPLIER[tier])
+        markup_low, markup_high = profile.markup or CATEGORY_MARKUP[category]
+        markup = rng.uniform(markup_low, markup_high) - (0.03 if tier == "premium" else 0.0)
+        purchase_price = money(purchase)
+        sale_price = money(float(purchase_price) * markup)
 
-                sku = generate_sku(brand_name, existing_skus)
-                
-                # Generate realistic product name
-                adj = random.choice(PART_ADJECTIVES)
-                noun = random.choice(PART_NOUNS)
-                product_name = f"{brand_name} {adj} {subcat_name.rstrip('s')} - {noun}"
+        weight = money(rng.uniform(profile.weight_min, profile.weight_max)) if rng.random() > 0.05 else None
+        rows.append((
+            subcategory_id, brands[brand], supplier_id, statuses[status], sku, product_name, description,
+            "pcs", purchase_price, sale_price, weight, _created_at(rng, cfg, status),
+        ))
+    return rows
 
-                # Pricing logic (purchase price based on category/random, sale price with markup 25% - 60%)
-                subcat_price_range = SUBCATEGORY_PRICE_RANGES.get(subcat_name, (50, 15000))
-                purchase_price = round(random.uniform(*subcat_price_range), 2)
-                markup_percentage = get_brand_margin(brand_tier)
-                standard_sale_price = round(purchase_price * markup_percentage, 2)
 
-                # Weight in kg (some items might be null or up to 35 kg)
-                weight_kg = round(random.uniform(0.1, 18.5), 2) if random.random() > 0.1 else None
+def generate_products(cfg: GenerationConfig, conn: Any | None = None) -> int:
+    """Insert products into an empty ``products`` table; return the number of rows."""
+    if conn is None:
+        with get_connection() as own_conn:
+            return generate_products(cfg, own_conn)
 
-                description = (
-                    f"High-quality replacement part by {brand_name}. "
-                    f"Designed for optimal performance and durability in category {subcat_name}."
-                )
+    print(f"Generating {cfg.products} products ...")
+    with conn.cursor() as cur:
+        ensure_empty(cur, ["products"], "products")
+        cur.execute(
+            "SELECT s.subcategory_id, s.subcategory_name, c.category_name "
+            "FROM subcategories s JOIN categories c ON c.category_id = s.category_id "
+            "ORDER BY s.subcategory_id"
+        )
+        subcategories = [(int(i), name, category) for i, name, category in cur.fetchall()]
+        brands = fetch_name_map(cur, "brands", "brand_id", "brand_name")
+        suppliers = fetch_name_map(cur, "suppliers", "supplier_id", "supplier_name")
+        statuses = fetch_name_map(cur, "product_statuses", "product_status_id", "status_name")
+        rows = build_products(cfg, make_rng(cfg.seed, "products"), subcategories, brands, suppliers, statuses)
+        written = copy_rows(cur, "products", PRODUCT_COLUMNS, rows)
+    print(f"Products inserted: {written}")
+    return written
 
-                products_to_insert.append((
-                    subcat_id,
-                    brand_id,
-                    supplier_id,
-                    status_id,
-                    sku,
-                    product_name,
-                    description,
-                    "pcs",
-                    purchase_price,
-                    standard_sale_price,
-                    weight_kg
-                ))
-
-            print(f"Inserting {len(products_to_insert)} products into the database...")
-            
-            # Use executemany for fast batch insertion
-            cur.executemany(
-                """
-                INSERT INTO products (
-                    subcategory_id, brand_id, supplier_id, product_status_id,
-                    sku, product_name, description, unit_of_measure,
-                    purchase_price, standard_sale_price, weight_kg
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-                """,
-                products_to_insert
-            )
-
-        conn.commit()
-    print(f"Success! Generated and inserted {count} products.")
 
 if __name__ == "__main__":
-    generate_products(10000)
+    generate_products(GenerationConfig.from_env())

@@ -1,47 +1,27 @@
-from pathlib import Path
-import sys
+"""Read-only data quality check of a generated database.
+
+Skipped unless ``RUN_DB_TESTS=1`` and the ``DB_*`` variables point to a database filled by
+``python main.py all``. The test only reads data (read-only transaction) and never writes,
+truncates or deletes anything.
+"""
+
+from __future__ import annotations
+
+import os
+
 import pytest
 
-# 1. Жорстко і чітко визначаємо корінь проєкту (папка autoparts-sales-bi-analytics)
-# Оскільки test_data_quality.py лежить у папці tests, корінь — це один рівень вище.
-ROOT_DIR = Path(__file__).resolve().parent.parent
+pytestmark = pytest.mark.skipif(os.getenv("RUN_DB_TESTS") != "1",
+                                reason="set RUN_DB_TESTS=1 to check a generated database")
 
-# 2. Додаємо шлях до папки python, де лежить db.py
-PYTHON_DIR = ROOT_DIR / "python"
-sys.path.append(str(PYTHON_DIR))
 
-try:
+def test_database_passes_all_validation_checks():
+    from config import GenerationConfig
     from db import get_connection
-except ImportError:
-    # Якщо раптом db.py лежить в іншій папці, пробуємо імпортувати напряму з кореня
-    sys.path.append(str(ROOT_DIR))
-    from db import get_connection
+    from validation import format_report, has_errors, run_validation
 
-
-def test_database_data_quality():
-    """Test to validate data quality in the database using SQL checks."""
-
-    # 3. Шукаємо файл SQL у папці sql в корені проєкту
-    sql_file_path = ROOT_DIR / "sql" / "01_data_quality_checks.sql"
-    
-    if not sql_file_path.exists():
-        pytest.skip(f"SQL file not found at {sql_file_path}. Skipping DQ tests.")
-
+    cfg = GenerationConfig.from_env()
     with get_connection() as conn:
-        with conn.cursor() as cur:
-            sql_script = sql_file_path.read_text(encoding="utf-8")
-            cur.execute(sql_script)
-            cur.execute("SELECT check_name, severity, failed_rows FROM dq_results;")
-            results = cur.fetchall()
-
-    failures = []
-    for check_name, severity, failed_rows in results:
-        if failed_rows > 0:
-            failures.append(f"[{severity}] «{check_name}»: found {failed_rows} failed rows.")
-
-    if failures:
-        failure_message = "\n".join(f"  ❌ {f}" for f in failures)
-        pytest.fail(
-            f"\nData Quality Validation FAILED!\n"
-            f"Errors found in data quality checks:\n{failure_message}"
-        )
+        results = run_validation(conn, cfg)
+    report = format_report(results)
+    assert not has_errors(results), "\n" + report

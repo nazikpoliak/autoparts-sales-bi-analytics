@@ -8,7 +8,7 @@ from decimal import Decimal
 
 import pytest
 
-from common import make_rng
+from python.data_generator.common import make_rng
 from python.data_generator.config import GenerationConfig
 from python.data_generator.generators.customer_generator import CUSTOMER_COLUMNS, build_customers
 from python.data_generator.generators.product_generator import PRODUCT_COLUMNS, build_products

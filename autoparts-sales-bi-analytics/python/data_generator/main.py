@@ -90,7 +90,7 @@ def run(argv: Sequence[str] | None = None) -> int:
     print("Configuration:", cfg.describe())
 
     if args.command == "validate":
-        from validation import has_errors, run_on_database
+        from python.data_generator.validation import has_errors, run_on_database
         return 1 if has_errors(run_on_database(cfg)) else 0
 
     steps = STEPS if args.command == "all" else (args.command,)
@@ -104,7 +104,7 @@ def run(argv: Sequence[str] | None = None) -> int:
             conn.commit()
 
     if args.command == "all":
-        from validation import has_errors, run_on_database
+        from python.data_generator.validation import has_errors, run_on_database
         return 1 if has_errors(run_on_database(cfg)) else 0
     return 0
 

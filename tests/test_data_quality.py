@@ -17,7 +17,7 @@ pytestmark = pytest.mark.skipif(os.getenv("RUN_DB_TESTS") != "1",
 
 def test_database_passes_all_validation_checks():
     from python.data_generator.config import GenerationConfig
-    from tests.db import get_connection
+    from tests.database_connection import get_connection
     from python.data_generator.validation import format_report, has_errors, run_validation
 
     cfg = GenerationConfig.from_env()

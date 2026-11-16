@@ -7,7 +7,6 @@ with gross_product_sales as (
     join products p on oi.product_id = p.product_id
     join orders o on oi.order_id = o.order_id
     join order_statuses os on o.order_status_id = os.order_status_id
-    left join return_items ri on oi.order_item_id = ri.order_item_id
     where os.status_name = 'Completed'
     group by p.product_id, p.product_name
 ),
@@ -22,13 +21,12 @@ product_refund as (
 ),
 
 net_product_sales as (
-    select 
+    select
         ps.product_id,
         ps.product_name,
-        ps.product_revenue - coalesce(pr.product_refund, 0) - oi.discount_amount as product_revenue
+        ps.product_revenue - coalesce(pr.product_refund, 0) as product_revenue
     from gross_product_sales ps
     left join product_refund pr on ps.product_id = pr.product_id
-    join order_items oi on ps.product_id = oi.product_id
 ),
 
 cumulative_calc as (

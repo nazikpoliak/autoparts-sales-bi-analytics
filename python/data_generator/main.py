@@ -24,7 +24,8 @@ from datetime import date
 from pathlib import Path
 from typing import Callable, Sequence
 
-sys.path.append(str(Path(__file__).resolve().parent))
+# Our folder goes FIRST, so a same-named third-party package (e.g. "common") cannot shadow our modules.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import GenerationError  # noqa: E402
 from config import GenerationConfig  # noqa: E402
@@ -90,7 +91,7 @@ def run(argv: Sequence[str] | None = None) -> int:
     print("Configuration:", cfg.describe())
 
     if args.command == "validate":
-        from python.data_generator.validation import has_errors, run_on_database
+        from validation import has_errors, run_on_database
         return 1 if has_errors(run_on_database(cfg)) else 0
 
     steps = STEPS if args.command == "all" else (args.command,)
@@ -104,7 +105,7 @@ def run(argv: Sequence[str] | None = None) -> int:
             conn.commit()
 
     if args.command == "all":
-        from python.data_generator.validation import has_errors, run_on_database
+        from validation import has_errors, run_on_database
         return 1 if has_errors(run_on_database(cfg)) else 0
     return 0
 
